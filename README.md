@@ -15,7 +15,7 @@
 * 각 요구사항을 구현하는 것이 중요한 것이 아니라 구현 과정을 통해 학습한 내용을 인식하는 것이 배움에 중요하다. 
 
 ### 요구사항 1 - http://localhost:8080/index.html로 접속시 응답
-* Java I.O stream , streamReader, bufferReader 에 나만의 정확한 이해랄 가지고 있어야 할 것 같다.
+* Java I.O stream , streamReader, bufferReader 에 나만의 정확한 이해를 가지고 있어야 할 것 같다.
 * http request가 어떤식으로 들어오는지 확인 할 수 있었다.
 * Files.readAllBytes 를 처음 써 보았다.
 * File 을 생성할 때 상대경로가 어떻게 쓰였는데 루트를 어디로 보는지 확인이 필요하다.
