@@ -1,10 +1,13 @@
 package webserver;
 
+import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.HttpRequestUtils;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Map;
 
 import static util.StringUtil.getFileContent;
 import static util.StringUtil.getUrlCommand;
@@ -27,7 +30,20 @@ public class RequestHandler extends Thread {
             if (line == null) {
                 return;
             }
-            byte[] body = getFileContent(getUrlCommand(line));
+
+            String url = getUrlCommand(line);
+            if(url.startsWith("/user/create")) {
+                int idx = url.indexOf("?");
+                String requestPath = url.substring(0,idx);
+                String requestParam = url.substring(idx+1);
+                Map<String, String> parseQueryString = HttpRequestUtils.parseQueryString(requestParam);
+                User user = new User(parseQueryString.get("userId"),parseQueryString.get("password"),parseQueryString.get("name"),parseQueryString.get("email"));
+                log.debug("user {}",user.toString());
+                url ="/index.html";
+            }
+
+
+            byte[] body = getFileContent(url);
 
             DataOutputStream dos = new DataOutputStream(out);
             response200Header(dos, body.length);

@@ -7,10 +7,10 @@ import java.nio.file.Files;
 public  class  StringUtil {
 
     public static String getUrlCommand(String cmd) {
-        if(cmd == null) {
-            return null;
-        }
         return cmd.split(" ")[1];
+    }
+    public static String getHttpMethod(String cmd) {
+        return cmd.split(" ")[0];
     }
 
     public static byte[] getFileContent(String url){
