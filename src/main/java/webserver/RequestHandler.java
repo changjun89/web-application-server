@@ -9,6 +9,7 @@ import util.IOUtils;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public class RequestHandler extends Thread {
             // TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             String line = br.readLine();
-            log.debug("line cmd : " + line);
+            log.debug("Request line : {} " + line);
 
             if (line == null) {
                 return;
@@ -38,7 +39,7 @@ public class RequestHandler extends Thread {
 
             String url = getUrlCommand(line);
 
-            if (url.contains(".css")) {
+            if (url.endsWith(".css")) {
                 byte[] body = getFileContent(url);
                 DataOutputStream dos = new DataOutputStream(out);
                 response200HeaderCss(dos, body.length);
@@ -50,12 +51,22 @@ public class RequestHandler extends Thread {
                 HashMap<String, String> requestHeader = readLineAndConvertHashMap(br);
                 requestHeader.put("header", line);
                 Map<String, String> cookie = parseCookies(requestHeader.get("Cookie"));
-                url = "/user/login.html";
-                if ("true".equals(cookie.get("login"))) {
-                    url = "/user/list.html";
+                if ("false".equals(cookie.get("login"))) {
+                    responseResource(out, "/user/login.html");
                 }
+                Collection<User> users = DataBase.findAll();
+                StringBuffer sb = new StringBuffer();
+                sb.append("<table border='1'>");
+                for (User user : users) {
+                    sb.append("<tr>");
+                    sb.append("<td>" + user.getUserId() + "</td>");
+                    sb.append("<td>" + user.getName() + "</td>");
+                    sb.append("<td>" + user.getEmail() + "</td>");
+                    sb.append("</tr>");
+                }
+                sb.append("</table>");
+                byte[] body = sb.toString().getBytes();
                 DataOutputStream dos = new DataOutputStream(out);
-                byte[] body = getFileContent(url);
                 response200Header(dos, body.length);
                 responseBody(dos, body);
             }
@@ -76,45 +87,39 @@ public class RequestHandler extends Thread {
                 }
 
                 DataOutputStream dos = new DataOutputStream(out);
-                byte[] body = getFileContent(url);
                 if (loginResult) {
-                    response200HeaderWithCookie(dos, body.length);
+                    response302LoginSuccessHeader(dos);
                 } else {
-                    response200Header(dos, body.length);
+                    responseResource(out, "/user/login_failed.html");
                 }
-                responseBody(dos, body);
             }
 
             if (url.startsWith("/user/create")) {
-                String httpMethod = getHttpMethod(line);
-                if ("POST".equals(httpMethod)) {
-                    HashMap<String, String> requestHeader = readLineAndConvertHashMap(br);
-                    String content = IOUtils.readData(br, Integer.parseInt(requestHeader.get("Content-Length")));
-                    createUser(makeRequestParam(content));
-                    url = "/index.html";
-                }
 
-                if ("GET".equals(getHttpMethod(line))) {
-                    Map<String, String> parseQueryString = HttpRequestUtils.parseQueryString(getRequestParamFromUrl(url));
-                    createUser(parseQueryString);
-                }
+                HashMap<String, String> requestHeader = readLineAndConvertHashMap(br);
+                String content = IOUtils.readData(br, Integer.parseInt(requestHeader.get("Content-Length")));
+                createUser(makeRequestParam(content));
+                url = "/index.html";
 
                 DataOutputStream dos = new DataOutputStream(out);
-                response302Header(dos, "/index.html");
-                byte[] body = getFileContent(url);
-                responseBody(dos, body);
-
+                response302Header(dos, url);
             }
 
-            byte[] body = getFileContent(url);
-            DataOutputStream dos = new DataOutputStream(out);
-            response200Header(dos, body.length);
-            responseBody(dos, body);
+            responseResource(out, url);
 
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
+
+    private void responseResource(OutputStream out, String url) {
+        byte[] body = getFileContent(url);
+        DataOutputStream dos = new DataOutputStream(out);
+        response200Header(dos, body.length);
+        responseBody(dos, body);
+    }
+
+
 
     private String getRequestParamFromUrl(String url) {
         return url.substring(url.indexOf("?") + 1);
@@ -154,11 +159,6 @@ public class RequestHandler extends Thread {
         return false;
     }
 
-    private String readFirstLint(InputStream in) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(in));
-        return br.readLine();
-    }
-
     private User createUser(Map<String, String> requestParam) {
         User user = new User(requestParam.get("userId"), requestParam.get("password"), requestParam.get("name"), requestParam.get("email"));
         DataBase.addUser(user);
@@ -188,12 +188,11 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private void response200HeaderWithCookie(DataOutputStream dos, int lengthOfBodyContent) {
+    private void response302LoginSuccessHeader(DataOutputStream dos) {
         try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
             dos.writeBytes("Set-Cookie: login=true \r\n");
+            dos.writeBytes("Location: /index.html \r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
