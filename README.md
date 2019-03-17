@@ -22,19 +22,21 @@
 * java i.o 에 대한 충분한 이해가 부족했던 것 같다.
 
 ### 요구사항 2 - get 방식으로 회원가입
-* 
+* response 를 어떻게 보내야햐는지 학습
 
 ### 요구사항 3 - post 방식으로 회원가입
-* 
+* 본문의 내용이 헤더뒤에 공백을 두고 들어 온다는 것 확인
+* 본문의 길이는 요청헤더의 contentLength로 확인가능하다는 것 학습.
 
 ### 요구사항 4 - redirect 방식으로 이동
-* 
+* 리다이렉트의 response 응답코드는 302 Redirect
 
 ### 요구사항 5 - cookie
-* 
+* header에 있는 cookie값 사용 하는 법 학습
 
 ### 요구사항 6 - stylesheet 적용
-* 
+* html을 읽어 들여와 다시 서버로 request를 보낸 다는 것 학습.
+* 응답의 reposnse의 content-type을 :text/css 로 해야 한다는 것 학습
 
 ### heroku 서버에 배포 후
 * 
