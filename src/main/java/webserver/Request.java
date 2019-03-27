@@ -12,7 +12,7 @@ public class Request {
 
     private InputStream inputStream;
     private BufferedReader bufferedReader;
-    private HashMap<String,String> headerInfo;
+    private HashMap<String, String> headerInfo;
     private RequestHeader requestHeader;
     private RequestURL requestURL;
     private RequestParam requestParam;
@@ -24,14 +24,14 @@ public class Request {
         createRequestURL();
         createRequestHeader();
 
-        if("POST".equals(requestURL.getHttpMethod())) {
+        if ("POST".equals(requestURL.getHttpMethod())) {
             String queryString = IOUtils.readData(bufferedReader, Integer.parseInt(requestHeader.getParam("Content-Length")));
-            System.out.println("queryString : "+queryString);
+                    System.out.println("queryString : " + queryString);
             requestParam = new RequestParam(queryString);
         }
-        if("GET".equals(requestURL.getHttpMethod())) {
+        if ("GET".equals(requestURL.getHttpMethod())) {
             String queryString = requestURL.getQueryParam();
-            System.out.println("queryString : "+queryString);
+            System.out.println("queryString : " + queryString);
             requestParam = new RequestParam(queryString);
         }
     }
@@ -39,13 +39,14 @@ public class Request {
     public String getParam(String key) {
         return requestParam.getParam(key);
     }
+
     public void addParam(String key, String value) {
         requestParam.addParam(key, value);
     }
 
     private String readLine() throws Exception {
         String line = bufferedReader.readLine();
-        if(line == null) {
+        if (line == null) {
             throw new Exception();
         }
         return line;
@@ -80,7 +81,7 @@ public class Request {
         String line;
         while (!"".equals(line = bufferedReader.readLine())) {
             System.out.println("line : " + line);
-        //while ((line = bufferedReader.readLine()) != null) {
+            //while ((line = bufferedReader.readLine()) != null) {
             String[] split = splitString(line);
             if (split.length == 2) {
                 requestHeader.addParam(split[0], split[1]);
@@ -92,8 +93,6 @@ public class Request {
     private String[] splitString(String line) {
         return line.split(": ");
     }
-
-
 
 
 }
