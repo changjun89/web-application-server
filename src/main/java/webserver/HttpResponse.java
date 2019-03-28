@@ -21,9 +21,12 @@ public class HttpResponse {
         this.dos = dataOutputStream;
     }
 
+    public void addheader(String key , String value) {
+        headers.put(key, value);
+    }
+
     public void foward(String url) throws Exception {
         byte[] body = getFileContent(url);
-
         if (url.endsWith(".css")) {
             headers.put("Content-Type", "text/css");
         } else if (url.endsWith(".js")) {
@@ -39,6 +42,7 @@ public class HttpResponse {
 
         response302Header(url);
     }
+
     public void forwardBody(String body) {
         byte[] contents = body.getBytes();
         headers.put("Content-Type", "text/html;charset=utf-8");
@@ -64,30 +68,18 @@ public class HttpResponse {
         while(iterator.hasNext()) {
             String key = iterator.next();
             try {
-                dos.writeBytes(key+": "+headers.get("key")+"\r\n");
+                dos.writeBytes(key+": "+headers.get(key)+"\r\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private void response200HeaderWithCookie(int lengthOfBodyContent) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.flush();
-            dos.writeBytes("Set-Cookie: login=true \r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void response302Header(String url) {
+    private void response302Header(String redirectUrl) {
         try {
             dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
-            dos.writeBytes("Location: " + url + " \r\n");
+            dos.writeBytes("Location: " + redirectUrl + " \r\n");
+            makeResponse();
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());

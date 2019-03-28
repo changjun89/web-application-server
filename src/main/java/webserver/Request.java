@@ -31,8 +31,9 @@ public class Request {
         }
         if ("GET".equals(requestURL.getHttpMethod())) {
             String queryString = requestURL.getQueryParam();
-            System.out.println("queryString : " + queryString);
-            requestParam = new RequestParam(queryString);
+            if(queryString != null) {
+                requestParam = new RequestParam(queryString);
+            }
         }
     }
 

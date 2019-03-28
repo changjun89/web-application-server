@@ -20,6 +20,7 @@ public class RequestHandler extends Thread {
 
     private Socket connection;
     private Request request;
+    private HttpResponse httpResponse;
 
     public RequestHandler(Socket connectionSocket) {
         this.connection = connectionSocket;
@@ -31,94 +32,43 @@ public class RequestHandler extends Thread {
             // TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
             try {
                 request = new Request(in);
-            }catch (Exception e) {
+                String url = request.getUrl();
+                System.out.println("url : " +url);
+                httpResponse = new HttpResponse(new DataOutputStream(out));
 
-            }
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(in));
-            String line = br.readLine();
-            log.debug("line cmd : " + line);
-
-            if (line == null) {
-                return;
-            }
-
-            String url = getUrlCommand(line);
-
-            if (url.contains(".css")) {
-                byte[] body = getFileContent(url);
-                DataOutputStream dos = new DataOutputStream(out);
-                response200HeaderCss(dos, body.length);
-                responseBody(dos, body);
-            }
-
-
-            if (url.startsWith("/user/list")) {
-                HashMap<String, String> requestHeader = readLineAndConvertHashMap(br);
-                requestHeader.put("header", line);
-                Map<String, String> cookie = parseCookies(requestHeader.get("Cookie"));
-                url = "/user/login.html";
-                if ("true".equals(cookie.get("login"))) {
-                    url = "/user/list.html";
-                }
-                DataOutputStream dos = new DataOutputStream(out);
-                byte[] body = getFileContent(url);
-                response200Header(dos, body.length);
-                responseBody(dos, body);
-            }
-
-            if (url.startsWith("/user/login") && !url.startsWith("/user/login.html")) {
-                boolean loginResult = false;
-                if ("POST".equals(getHttpMethod(line))) {
-                    HashMap<String, String> requestHeader = readLineAndConvertHashMap(br);
-                    String content = IOUtils.readData(br, Integer.parseInt(requestHeader.get("Content-Length")));
-                    Map<String, String> requestParam = makeRequestParam(content);
-                    loginResult = login(requestParam.get("userId"), requestParam.get("password"));
-                    url = "/index.html";
+                if (url.contains(".css")) {
+                    httpResponse.foward(url);
                 }
 
-                if ("GET".equals(getHttpMethod(line))) {
-                    Map<String, String> parseQueryString = HttpRequestUtils.parseQueryString(getRequestParamFromUrl(url));
-                    loginResult = login(parseQueryString.get("userId"), parseQueryString.get("password"));
+                if (url.startsWith("/user/list")) {
+                    Map<String, String> cookie = parseCookies(request.getParam("Cookie"));
+                    url = "/user/login.html";
+                    if ("true".equals(cookie.get("login"))) {
+                        url = "/user/list.html";
+                    }
+                    httpResponse.foward(url);
                 }
 
-                DataOutputStream dos = new DataOutputStream(out);
-                byte[] body = getFileContent(url);
-                if (loginResult) {
-                    response200HeaderWithCookie(dos, body.length);
-                } else {
-                    response200Header(dos, body.length);
+                if (url.startsWith("/user/login") && !url.startsWith("/user/login.html")) {
+                    if (login(request.getParam("userId"), request.getParam("password"))) {
+                        httpResponse.addheader("Set-Cookie","login=true");
+                    }
+                    httpResponse.foward(url);
                 }
-                responseBody(dos, body);
+
+                if (url.startsWith("/user/create")) {
+                    User user = new User(request.getParam("userId"), request.getParam("password"), request.getParam("name"), request.getParam("email"));
+                    addUser(user);
+                    httpResponse.redirect("/index.html");
+                }
+
+                httpResponse.foward(url);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-
-            if (url.startsWith("/user/create")) {
-                String httpMethod = getHttpMethod(line);
-                if ("POST".equals(httpMethod)) {
-                    HashMap<String, String> requestHeader = readLineAndConvertHashMap(br);
-                    String content = IOUtils.readData(br, Integer.parseInt(requestHeader.get("Content-Length")));
-                    createUser(makeRequestParam(content));
-                    url = "/index.html";
-                }
-
-                if ("GET".equals(getHttpMethod(line))) {
-                    Map<String, String> parseQueryString = HttpRequestUtils.parseQueryString(getRequestParamFromUrl(url));
-                    createUser(parseQueryString);
-                }
-
-                DataOutputStream dos = new DataOutputStream(out);
-                response302Header(dos, "/index.html");
-                byte[] body = getFileContent(url);
-                responseBody(dos, body);
-
-            }
-
-            byte[] body = getFileContent(url);
-            DataOutputStream dos = new DataOutputStream(out);
-            response200Header(dos, body.length);
-            responseBody(dos, body);
 
         } catch (IOException e) {
+            e.printStackTrace();
             log.error(e.getMessage());
         }
     }
@@ -166,8 +116,7 @@ public class RequestHandler extends Thread {
         return br.readLine();
     }
 
-    private User createUser(Map<String, String> requestParam) {
-        User user = new User(requestParam.get("userId"), requestParam.get("password"), requestParam.get("name"), requestParam.get("email"));
+    private User addUser(User user) {
         DataBase.addUser(user);
         log.debug("user 등록 완료 {}", user.toString());
         return user;
