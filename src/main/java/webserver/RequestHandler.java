@@ -33,7 +33,7 @@ public class RequestHandler extends Thread {
             try {
                 request = new Request(in);
                 String url = request.getUrl();
-                System.out.println("url : " +url);
+                System.out.println("url : " + url);
                 httpResponse = new HttpResponse(new DataOutputStream(out));
 
                 if (url.contains(".css")) {
@@ -41,7 +41,7 @@ public class RequestHandler extends Thread {
                 }
 
                 if (url.startsWith("/user/list")) {
-                    Map<String, String> cookie = parseCookies(request.getParam("Cookie"));
+                    Map<String, String> cookie = parseCookies(request.getHeaderParam("Cookie"));
                     url = "/user/login.html";
                     if ("true".equals(cookie.get("login"))) {
                         url = "/user/list.html";
@@ -51,7 +51,7 @@ public class RequestHandler extends Thread {
 
                 if (url.startsWith("/user/login") && !url.startsWith("/user/login.html")) {
                     if (login(request.getParam("userId"), request.getParam("password"))) {
-                        httpResponse.addheader("Set-Cookie","login=true");
+                        httpResponse.addheader("Set-Cookie", "login=true");
                     }
                     httpResponse.foward(url);
                 }
@@ -73,34 +73,6 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private String getRequestParamFromUrl(String url) {
-        return url.substring(url.indexOf("?") + 1);
-    }
-
-    private HashMap<String, String> readLineAndConvertHashMap(BufferedReader br) {
-        HashMap<String, String> requestHeader = new HashMap<>();
-        try {
-            String line;
-            while (!"".equals(line = br.readLine())) {
-                String[] split = splitString(line);
-                if (split.length == 2) {
-                    requestHeader.put(split[0], split[1]);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return requestHeader;
-    }
-
-    private Map<String, String> makeRequestParam(String contentBody) {
-        return HttpRequestUtils.parseQueryString(contentBody);
-    }
-
-    private String[] splitString(String line) {
-        return line.split(": ");
-    }
-
     private boolean login(String userId, String password) {
         User user = DataBase.findUserById(userId);
         if (user != null && user.getPassword().equals(password)) {
@@ -111,68 +83,11 @@ public class RequestHandler extends Thread {
         return false;
     }
 
-    private String readFirstLint(InputStream in) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(in));
-        return br.readLine();
-    }
-
     private User addUser(User user) {
         DataBase.addUser(user);
         log.debug("user 등록 완료 {}", user.toString());
         return user;
     }
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void response200HeaderCss(DataOutputStream dos, int lengthOfBodyContent) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/css;charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void response200HeaderWithCookie(DataOutputStream dos, int lengthOfBodyContent) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("Set-Cookie: login=true \r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void response302Header(DataOutputStream dos, String url) {
-        try {
-            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
-            dos.writeBytes("Location: " + url + " \r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void responseBody(DataOutputStream dos, byte[] body) {
-        try {
-            dos.write(body, 0, body.length);
-            dos.flush();
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
 }
 

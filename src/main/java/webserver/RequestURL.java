@@ -27,8 +27,8 @@ public class RequestURL {
     }
 
     private String parsingUrl() {
-        this.queryParam = fullUrl.substring(fullUrl.indexOf("?")+1);
-        return fullUrl.substring(0,fullUrl.indexOf("?"));
+        this.queryParam = fullUrl.substring(fullUrl.indexOf("?") + 1);
+        return fullUrl.substring(0, fullUrl.indexOf("?"));
     }
 
 

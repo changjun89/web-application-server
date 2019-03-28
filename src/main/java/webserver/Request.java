@@ -26,12 +26,12 @@ public class Request {
 
         if ("POST".equals(requestURL.getHttpMethod())) {
             String queryString = IOUtils.readData(bufferedReader, Integer.parseInt(requestHeader.getParam("Content-Length")));
-                    System.out.println("queryString : " + queryString);
+            System.out.println("queryString : " + queryString);
             requestParam = new RequestParam(queryString);
         }
         if ("GET".equals(requestURL.getHttpMethod())) {
             String queryString = requestURL.getQueryParam();
-            if(queryString != null) {
+            if (queryString != null) {
                 requestParam = new RequestParam(queryString);
             }
         }

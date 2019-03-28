@@ -15,13 +15,13 @@ public class HttpResponse {
     private static final Logger log = LoggerFactory.getLogger(HttpResponse.class);
 
     DataOutputStream dos;
-    HashMap<String,String> headers = new HashMap<>();
+    HashMap<String, String> headers = new HashMap<>();
 
     public HttpResponse(DataOutputStream dataOutputStream) {
         this.dos = dataOutputStream;
     }
 
-    public void addheader(String key , String value) {
+    public void addheader(String key, String value) {
         headers.put(key, value);
     }
 
@@ -38,6 +38,7 @@ public class HttpResponse {
         response200Header(body.length);
         responseBody(body);
     }
+
     public void redirect(String url) {
 
         response302Header(url);
@@ -65,10 +66,10 @@ public class HttpResponse {
     private void makeResponse() {
         Set<String> headerKey = headers.keySet();
         Iterator<String> iterator = headerKey.iterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             String key = iterator.next();
             try {
-                dos.writeBytes(key+": "+headers.get(key)+"\r\n");
+                dos.writeBytes(key + ": " + headers.get(key) + "\r\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }
