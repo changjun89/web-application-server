@@ -1,7 +1,5 @@
 package webserver;
 
-import java.util.HashMap;
-
 public class RequestURL {
     private String requsetURL;
     private String method;

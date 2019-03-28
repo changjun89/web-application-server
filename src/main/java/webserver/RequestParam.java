@@ -2,7 +2,6 @@ package webserver;
 
 import util.HttpRequestUtils;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class RequestParam {
