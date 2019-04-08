@@ -1,9 +1,6 @@
 package webserver;
 
-import web.controller.Controller;
-import web.controller.LoginController;
-import web.controller.UserCreateController;
-import web.controller.UserListController;
+import web.controller.*;
 
 import java.util.HashMap;
 
@@ -15,6 +12,7 @@ public class RequestMapping {
         controllerMap.put("/user/create", new UserCreateController());
         controllerMap.put("/user/list", new UserListController());
         controllerMap.put("/user/login", new LoginController());
+        controllerMap.put("/user/logout", new LogoutController());
     }
 
     public static Controller getController(String request) {

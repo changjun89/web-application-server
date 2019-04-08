@@ -16,7 +16,8 @@ public class LoginController extends AbstractController {
     protected void post(Request request, HttpResponse response) throws Exception {
         String url = "/user/login.html";
         if (login(request.getParam("userId"), request.getParam("password"))) {
-            response.addheader("Set-Cookie", "login=true");
+            //response.addheader("Set-Cookie", "login=true");
+            request.getHttpSession().setAttribute("user",DataBase.findUserById(request.getParam("userId")));
             url ="/user/list.html";
         }
         response.redirect(url);

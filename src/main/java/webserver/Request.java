@@ -37,6 +37,7 @@ public class Request {
         }
     }
 
+
     public String getParam(String key) {
         return requestParam.getParam(key);
     }
@@ -95,5 +96,12 @@ public class Request {
         return line.split(": ");
     }
 
+    public Cookies getCookies() {
+        return new Cookies(requestHeader.getParam("Cookie"));
+    }
+
+    public HttpSession getHttpSession() {
+        return HttpSessions.getSession(getCookies().get("JESESSIONID"));
+    }
 
 }
